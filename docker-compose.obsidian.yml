@@ -1,0 +1,39 @@
+services:
+  openclaw-obsidian-maintainer:
+    image: ${OPENCLAW_OBSIDIAN_IMAGE:-openclaw-obsidian:local}
+    build:
+      context: ${OPENCLAW_OPS_DIR:-.}
+      dockerfile: ${OPENCLAW_OBSIDIAN_DOCKERFILE:-./Dockerfile}
+      args:
+        OPENCLAW_DOCKER_APT_PACKAGES: ${OPENCLAW_DOCKER_APT_PACKAGES:-ca-certificates curl jq git ripgrep fd-find yq rsync tzdata python3 python-is-python3}
+        OPENCLAW_REPO_GIT_URL: ${OPENCLAW_REPO_GIT_URL:-https://github.com/openclaw/openclaw.git}
+        OPENCLAW_REPO_REF: ${OPENCLAW_REPO_REF:-main}
+    user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
+    working_dir: /app
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OBSIDIAN_VAULT_DIR: /workspace/vault
+      OPENCLAW_REPO_DIR: /app
+      OBSTOOLS_DIR: /workspace/vault/ObsToolsVault
+      OPENCLAW_EXTERNAL_MD_DIR: /workspace/vault/openclaw
+      STATE_DIR: /workspace/vault/ObsToolsVault/state
+      STATE_FILE: /workspace/vault/ObsToolsVault/state/openclaw_obsidian_state.json
+      QUEUE_FILE: /workspace/vault/ObsToolsVault/state/openclaw_obsidian_queue.json
+      MANIFEST_FILE: /workspace/vault/ObsToolsVault/state/openclaw_md_manifest.json
+      MIGRATION_SUGGESTIONS_FILE: /workspace/vault/ObsToolsVault/specs/migration_suggestions.md
+      AGENT_EXECUTE_GUIDE_FILE: /workspace/vault/ObsToolsVault/specs/agent_execute_guide.md
+      SCAN_INTERVAL_SEC: ${SCAN_INTERVAL_SEC:-60}
+      INIT_EXTERNALIZE_MD: ${INIT_EXTERNALIZE_MD:-1}
+      OPENCLAW_AGENT_ID: ${OPENCLAW_AGENT_ID:-main}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
+      CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
+      CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
+    volumes:
+      - ${OBSIDIAN_VAULT_HOST_DIR}:/workspace/vault
+      - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
+    entrypoint: ["/bin/bash"]
+    command: ["/ops/scripts/maintainer-loop.sh"]
+    init: true
+    restart: unless-stopped
