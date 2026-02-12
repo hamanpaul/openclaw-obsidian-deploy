@@ -33,9 +33,10 @@ RUN apt-get update && \
 
 WORKDIR /app
 
-COPY --from=builder --chown=node:node /src/openclaw /app
-COPY --chown=node:node scripts /ops/scripts
-RUN /bin/chmod +x /ops/scripts/*.sh
+ARG OPENCLAW_DOCKER_USER=1000:1000
+COPY --from=builder /src/openclaw /app
+COPY scripts /ops/scripts
+RUN /bin/chmod +x /ops/scripts/*.sh && chown -R ${OPENCLAW_DOCKER_USER} /app /ops/scripts || true
 
 ENV NODE_ENV=production
 

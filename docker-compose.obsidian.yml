@@ -8,6 +8,7 @@ services:
         OPENCLAW_DOCKER_APT_PACKAGES: ${OPENCLAW_DOCKER_APT_PACKAGES:-ca-certificates curl jq git ripgrep fd-find yq rsync tzdata python3 python-is-python3}
         OPENCLAW_REPO_GIT_URL: ${OPENCLAW_REPO_GIT_URL:-https://github.com/openclaw/openclaw.git}
         OPENCLAW_REPO_REF: ${OPENCLAW_REPO_REF:-main}
+        OPENCLAW_DOCKER_USER: ${OPENCLAW_DOCKER_USER:-1000:1000}
     user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
     working_dir: /app
     environment:
