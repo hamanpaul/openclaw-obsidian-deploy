@@ -51,6 +51,12 @@ while true; do
 
   changed_count="$(jq 'length' <<<"$changed_json")"
   deleted_count="$(jq 'length' <<<"$deleted_json")"
+  echo "[maintainer] scan changed=$changed_count deleted=$deleted_count ts=$now_utc"
+
+  changed_before_meta="$(jq -n \
+    --argjson current "$current_json" \
+    --argjson changed "$changed_json" \
+    'reduce ($changed[]?) as $path ({}; .[$path] = ($current[$path] // null))')"
 
   if [ "$changed_count" -eq 0 ] && [ "$deleted_count" -eq 0 ]; then
     tmp_state="$(mktemp)"
@@ -82,7 +88,7 @@ while true; do
   fi
 
   prompt="$(cat <<EOF
-執行 Obsidian 維護任務，依序使用 skills: obsidian-md-scan, obsidian-dispatch, obsidian-spec-state-maintainer。
+執行 Obsidian 維護任務，使用 skills: obsidian。
 
 規則來源：
 - $OBSTOOLS_DIR/*.md
@@ -109,9 +115,50 @@ EOF
   fi
 
   if "${agent_cmd[@]}"; then
+    post_scan_json="$("$SCRIPT_DIR/scan-vault-hash.sh")"
+    post_current_json="$(jq '.current' <<<"$post_scan_json")"
+    touched_count="$(jq -n \
+      --argjson before "$changed_before_meta" \
+      --argjson after "$post_current_json" \
+      '[($before | to_entries[])[] as $entry
+        | $entry.key as $path
+        | $entry.value as $before_meta
+        | ($after[$path] // null) as $after_meta
+        | select($before_meta == null or $after_meta == null or ($before_meta.sha256 != $after_meta.sha256))
+      ] | length')"
+
+    if [ "$changed_count" -gt 0 ] && [ "$touched_count" -eq 0 ]; then
+      echo "[maintainer] agent_no_effect changed=$changed_count touched=$touched_count"
+      retry_count="$(jq -r '.retry_count // 0' "$QUEUE_FILE")"
+      next_retry=$((retry_count + 1))
+      jq -n \
+        --arg ts "$now_utc" \
+        --argjson changed "$changed_json" \
+        --argjson deleted "$deleted_json" \
+        --argjson retry "$next_retry" \
+        --arg err "agent_no_effect" \
+        '{updated_at:$ts, pending:$changed, deleted:$deleted, retry_count:$retry, last_error:$err}' \
+        >"$QUEUE_FILE"
+
+      tmp_state="$(mktemp)"
+      jq \
+        --arg ts "$now_utc" \
+        --argjson changed_count "$changed_count" \
+        --arg err "agent_no_effect" \
+        '.last_scan_at = $ts
+        | .last_run = {
+            changed_count:$changed_count,
+            processed_count:0,
+            error_count:1,
+            status:"failed",
+            error:$err
+          }' \
+        "$STATE_FILE" >"$tmp_state"
+      mv "$tmp_state" "$STATE_FILE"
+    else
     current_tmp="$(mktemp)"
     new_files_tmp="$(mktemp)"
-    printf '%s\n' "$current_json" >"$current_tmp"
+    printf '%s\n' "$post_current_json" >"$current_tmp"
 
     jq -n \
       --arg ts "$now_utc" \
@@ -144,6 +191,7 @@ EOF
       --arg ts "$now_utc" \
       '{updated_at:$ts, pending:[], deleted:[], retry_count:0, last_error:null}' \
       >"$QUEUE_FILE"
+    fi
   else
     retry_count="$(jq -r '.retry_count // 0' "$QUEUE_FILE")"
     next_retry=$((retry_count + 1))
