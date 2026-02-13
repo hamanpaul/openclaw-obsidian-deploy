@@ -41,8 +41,12 @@ COPY --chown=${OPENCLAW_DOCKER_USER} config-template/agents/main/agent/models.js
 RUN /bin/chmod +x /ops/scripts/*.sh
 
 ENV NODE_ENV=production
+ENV OPENCLAW_GATEWAY_TOKEN=local-dev-token
+ENV OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH=1
 
 USER node
 
+EXPOSE 18789
+
 ENTRYPOINT ["node", "openclaw.mjs"]
-CMD ["gateway", "--allow-unconfigured"]
+CMD ["gateway", "run"]

@@ -22,6 +22,8 @@ for bin in jq sleep date node; do
 done
 
 mkdir -p "$STATE_DIR"
+"$SCRIPT_DIR/ensure-openclaw-config.sh"
+"$SCRIPT_DIR/ensure-zh-tw-default.sh"
 
 if [ ! -f "$STATE_FILE" ]; then
   jq -n \
