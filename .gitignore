@@ -2,3 +2,6 @@
 logs/
 *.tar.gz
 *.log
+.openclaw/
+obsidian_vault/
+vault/

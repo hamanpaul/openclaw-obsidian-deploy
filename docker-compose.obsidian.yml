@@ -27,7 +27,8 @@ services:
       SCAN_INTERVAL_SEC: ${SCAN_INTERVAL_SEC:-60}
       INIT_EXTERNALIZE_MD: ${INIT_EXTERNALIZE_MD:-1}
       OPENCLAW_AGENT_ID: ${OPENCLAW_AGENT_ID:-main}
-      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}
+      OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH: ${OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH:-1}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY:-}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY:-}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE:-}
@@ -36,5 +37,30 @@ services:
       - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
     entrypoint: ["/bin/bash"]
     command: ["/ops/scripts/maintainer-loop.sh"]
+    init: true
+    restart: unless-stopped
+
+  openclaw-obsidian-gateway:
+    image: ${OPENCLAW_OBSIDIAN_IMAGE:-openclaw-obsidian:local}
+    user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
+    working_dir: /app
+    depends_on:
+      - openclaw-obsidian-maintainer
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}
+      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_PORT:-18789}
+      OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH: ${OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH:-1}
+    volumes:
+      - ${OBSIDIAN_VAULT_HOST_DIR}:/workspace/vault
+      - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
+    entrypoint: ["/bin/bash", "-lc"]
+    command:
+      [
+        "/ops/scripts/ensure-openclaw-config.sh && /ops/scripts/ensure-zh-tw-default.sh && exec node /app/openclaw.mjs gateway run",
+      ]
     init: true
     restart: unless-stopped

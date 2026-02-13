@@ -40,9 +40,16 @@
 ```bash
 /usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml ps
 /usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs -f openclaw-obsidian-maintainer
+/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs -f openclaw-obsidian-gateway
 ```
 
-5) 登入 GitHub Copilot：
+5) Control UI（Windows -> WSL -> Docker）：
+
+- URL：`http://localhost:${OPENCLAW_GATEWAY_PORT:-18789}`
+- 預設 token：`${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}`
+- 若要關閉 HTTP token-only 連線：`.env` 設 `OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH=0` 後重啟 compose。
+
+6) 登入 GitHub Copilot：
 
 ```bash
 docker compose --env-file .env -f docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer node /app/openclaw.mjs models auth login-github-copilot --profile-id github-copilot:github --yes

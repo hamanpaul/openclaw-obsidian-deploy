@@ -3,6 +3,14 @@
     "lastTouchedVersion": "2026.2.10",
     "lastTouchedAt": "2026-02-13T01:38:34.965Z"
   },
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": {
+      "enabled": true,
+      "allowInsecureAuth": true
+    }
+  },
   "auth": {
     "profiles": {
       "github-copilot:github": {
@@ -10,12 +18,10 @@
         "mode": "token"
       }
     },
-    "orderOverrides": {
-      "agents": {
-        "main": [
-          "github-copilot:github"
-        ]
-      }
+    "order": {
+      "github-copilot": [
+        "github-copilot:github"
+      ]
     }
   },
   "agents": {
