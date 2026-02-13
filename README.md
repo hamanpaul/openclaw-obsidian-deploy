@@ -42,6 +42,12 @@
 /usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs -f openclaw-obsidian-maintainer
 ```
 
+5) 登入 GitHub Copilot：
+
+```bash
+docker compose --env-file .env -f docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer node /app/openclaw.mjs models auth login-github-copilot --profile-id github-copilot:github --yes
+```
+
 ## 一鍵打包（遷移重建）
 
 不含 auth：
