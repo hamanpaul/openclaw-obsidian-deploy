@@ -36,7 +36,9 @@ WORKDIR /app
 ARG OPENCLAW_DOCKER_USER=1000:1000
 COPY --from=builder /src/openclaw /app
 COPY scripts /ops/scripts
-RUN /bin/chmod +x /ops/scripts/*.sh && chown -R ${OPENCLAW_DOCKER_USER} /app /ops/scripts || true
+COPY config-template/openclaw.json /home/node/.openclaw/openclaw.json
+COPY config-template/agents/main/agent/models.json /home/node/.openclaw/agents/main/agent/models.json
+RUN /bin/chmod +x /ops/scripts/*.sh && chown -R ${OPENCLAW_DOCKER_USER} /app /ops/scripts /home/node/.openclaw || true
 
 ENV NODE_ENV=production
 

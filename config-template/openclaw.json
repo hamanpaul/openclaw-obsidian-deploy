@@ -1,0 +1,38 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.10",
+    "lastTouchedAt": "2026-02-13T01:38:34.965Z"
+  },
+  "auth": {
+    "profiles": {
+      "github-copilot:github": {
+        "provider": "github-copilot",
+        "mode": "token"
+      }
+    },
+    "orderOverrides": {
+      "agents": {
+        "main": [
+          "github-copilot:github"
+        ]
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "github-copilot/gpt-5-mini"
+      },
+      "models": {
+        "github-copilot/gpt-5-mini": {}
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  }
+}
