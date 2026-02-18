@@ -16,7 +16,7 @@ else
   exit 1
 fi
 
-for bin in rg jq sha256sum sort readlink cp rm ln dirname mktemp; do
+for bin in rg jq sha256sum sort readlink cp rm ln dirname mktemp date; do
   if ! command -v "$bin" >/dev/null 2>&1; then
     echo "missing dependency: $bin" >&2
     exit 1
@@ -31,19 +31,42 @@ tmp_ndjson="$(mktemp)"
 tmp_entries_json="$(mktemp)"
 trap 'rm -f "$tmp_all" "$tmp_sorted" "$tmp_ndjson" "$tmp_entries_json"' EXIT
 
+warn_missing_source() {
+  echo "[externalize] warning: source path missing: $1" >&2
+}
+
+source_hits=0
+
+if [ ! -d "$OPENCLAW_REPO_DIR" ]; then
+  warn_missing_source "$OPENCLAW_REPO_DIR"
+fi
+
 if [ -d "$OPENCLAW_REPO_DIR/skills" ]; then
-  "$FD_BIN" -HI -tf --glob 'SKILL.md' "$OPENCLAW_REPO_DIR/skills" >"$tmp_all"
+  source_hits=$((source_hits + 1))
+  "$FD_BIN" -HI -tf --glob 'SKILL.md' "$OPENCLAW_REPO_DIR/skills" >>"$tmp_all"
   {
     "$FD_BIN" -HI -tf --glob '*.md' "$OPENCLAW_REPO_DIR/skills" | rg '/references/' >>"$tmp_all"
   } || true
+else
+  warn_missing_source "$OPENCLAW_REPO_DIR/skills"
 fi
 
 if [ -d "$OPENCLAW_REPO_DIR/.agents/skills" ]; then
+  source_hits=$((source_hits + 1))
   "$FD_BIN" -HI -tf --glob '*.md' "$OPENCLAW_REPO_DIR/.agents/skills" >>"$tmp_all"
+else
+  warn_missing_source "$OPENCLAW_REPO_DIR/.agents/skills"
 fi
 
 if [ -d "$OPENCLAW_REPO_DIR/docs/reference/templates" ]; then
+  source_hits=$((source_hits + 1))
   "$FD_BIN" -HI -tf --glob '*.md' "$OPENCLAW_REPO_DIR/docs/reference/templates" >>"$tmp_all"
+else
+  warn_missing_source "$OPENCLAW_REPO_DIR/docs/reference/templates"
+fi
+
+if [ "$source_hits" -eq 0 ]; then
+  echo "[externalize] warning: no scan sources available, writing empty manifest" >&2
 fi
 
 sort -u "$tmp_all" >"$tmp_sorted"
