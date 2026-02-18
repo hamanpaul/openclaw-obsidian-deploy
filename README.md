@@ -210,6 +210,10 @@ docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openc
   node /app/openclaw.mjs logs --url ws://127.0.0.1:18789 --token "${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}" --plain
 ```
 
+- `maintainer` 顯示 `agent_no_effect` 且回報 `skills: obsidian` 不存在
+  - 這是任務提示詞指定了未安裝 skill，不是容器崩潰。
+  - 建議修正 `scripts/maintainer-loop.sh` prompt（移除 `skills: obsidian`）或安裝對應 skill。
+
 ## 一鍵打包（遷移重建）
 
 不含 auth：
