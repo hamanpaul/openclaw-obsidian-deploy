@@ -1,0 +1,515 @@
+{
+  "summary": {
+    "generated_at": "2026-02-18T11:41:17.983Z",
+    "template_deleted": 16,
+    "tag_normalized_files": 34,
+    "manual_moved_files": 8,
+    "reference_reports": {
+      "template_delete_result": "~/notes/ObsToolsVault/state/template_delete_result.json",
+      "tag_normalize_result": "~/notes/ObsToolsVault/state/tag_normalize_result.json",
+      "manual_review": "~/notes/ObsToolsVault/state/per_file_consistency_manual_review.json",
+      "manual_move_apply_result": "~/notes/ObsToolsVault/state/per_file_manual_move_apply_result.json"
+    }
+  },
+  "template_deletes": [
+    {
+      "file": "PersonalVault/ProjectPlanner/decide-on-the-type-of-event-auction-race-gala-dinner.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/define-the-genre-and-plot-outline.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/define-the-scope-of-the-renovation-kitchen-bathroom-etc.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/home-renovation.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/host-the-event-and-collect-donations.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/obtain-necessary-permits-for-construction.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/organize-a-charity-event.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/prepare-a-submission-or-publish-the-book.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/project-planner.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/publish-my-first-book.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/research-and-hire-contractors-or-decide-on-diy.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/research-publishing-options-traditional-self-publishing.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/secure-a-venue-and-date-for-the-event.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/set-a-budget-and-timeline-for-the-project.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "PersonalVault/ProjectPlanner/solicit-donations-or-sponsorships.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    },
+    {
+      "file": "WorkVault/Planning/weekly-to-do-list.md",
+      "reason": "Notion 模板誤匯入內容，風格與主筆記庫不一致，依決策整批移除"
+    }
+  ],
+  "manual_moves": [
+    {
+      "from": "WorkVault/EasyMesh-DPP技術參考資源.md",
+      "to": "TechVault/EasyMesh-DPP技術參考資源.md",
+      "reason": "內容為通用 DPP/EasyMesh 技術參考與 RFC/程式碼連結，非日誌型工作紀錄。"
+    },
+    {
+      "from": "WorkVault/DPP-技術規格與範例.md",
+      "to": "TechVault/DPP-技術規格與範例.md",
+      "reason": "內容為 DPP 規格、資料結構與範例，偏知識庫性質。"
+    },
+    {
+      "from": "WorkVault/ubus-WiFi-API技術文件.md",
+      "to": "TechVault/ubus-WiFi-API技術文件.md",
+      "reason": "內容為通用 API 調用與回應範例，可重用性高。"
+    },
+    {
+      "from": "WorkVault/DPP-技術問題清單與R2新功能筆記.md",
+      "to": "TechVault/DPP-技術問題清單與R2新功能筆記.md",
+      "reason": "以技術問題清單與協定差異為主，屬技術知識整理。"
+    },
+    {
+      "from": "WorkVault/Wi-Fi-Easy-Connect-DPP-技術規格筆記.md",
+      "to": "TechVault/Wi-Fi-Easy-Connect-DPP-技術規格筆記.md",
+      "reason": "以 DPP 技術規格與流程說明為主，偏技術知識庫。"
+    },
+    {
+      "from": "WorkVault/OpenWrt-UCI-Config-Sync-Tool.md",
+      "to": "TechVault/OpenWrt-UCI-Config-Sync-Tool.md",
+      "reason": "內容為工具設計與腳本邏輯，可重用技術知識。"
+    },
+    {
+      "from": "WorkVault/2024-個人技能與工作經歷清單.md",
+      "to": "PersonalVault/2024-個人技能與工作經歷清單.md",
+      "reason": "屬個人技能與履歷摘要，應歸個人職涯資料。"
+    },
+    {
+      "from": "WorkVault/Wi-Fi-EasyMesh-R1-R2-R3技術研究.md",
+      "to": "TechVault/Wi-Fi-EasyMesh-R1-R2-R3技術研究.md",
+      "reason": "屬協定與版本差異研究，偏技術知識。"
+    }
+  ],
+  "tag_normalizations": [
+    {
+      "file": "TechVault/Python-numpy-pandas-基礎筆記.md",
+      "old_tags": [
+        "Python",
+        "紀錄",
+        "隨手記"
+      ],
+      "new_tags": [
+        "python",
+        "紀錄",
+        "隨手記"
+      ],
+      "reason": "正規化 `Python -> python`"
+    },
+    {
+      "file": "TechVault/Python-參數打包解包-筆記.md",
+      "old_tags": [
+        "Python",
+        "紀錄",
+        "隨手記",
+        "職訓note"
+      ],
+      "new_tags": [
+        "python",
+        "紀錄",
+        "隨手記",
+        "職訓note"
+      ],
+      "reason": "正規化 `Python -> python`"
+    },
+    {
+      "file": "TechVault/Python-大數據分析-課程筆記.md",
+      "old_tags": [
+        "Python",
+        "紀錄",
+        "隨手記",
+        "職訓note"
+      ],
+      "new_tags": [
+        "python",
+        "紀錄",
+        "隨手記",
+        "職訓note"
+      ],
+      "reason": "正規化 `Python -> python`"
+    },
+    {
+      "file": "TechVault/Python-進階語法-map-lambda-筆記.md",
+      "old_tags": [
+        "Python",
+        "紀錄",
+        "隨手記"
+      ],
+      "new_tags": [
+        "python",
+        "紀錄",
+        "隨手記"
+      ],
+      "reason": "正規化 `Python -> python`"
+    },
+    {
+      "file": "TechVault/mesh_basic_note.md",
+      "old_tags": [
+        "公司",
+        "easyMesh",
+        "隨手記",
+        "未完成"
+      ],
+      "new_tags": [
+        "公司",
+        "wifiMesh",
+        "隨手記",
+        "未完成"
+      ],
+      "reason": "正規化 `easyMesh -> wifiMesh`"
+    },
+    {
+      "file": "TechVault/prompts/role-Linus_1.md",
+      "old_tags": [
+        "無標籤",
+        "linux"
+      ],
+      "new_tags": [
+        "linux"
+      ],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-bdk_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-bloger.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-c_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-net.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-owrt_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-pm_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-prpl_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-role_creator.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-role_creator_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-senior-test-engineer_1.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "TechVault/prompts/role-weekly.md",
+      "old_tags": [
+        "無標籤"
+      ],
+      "new_tags": [],
+      "reason": "移除狀態標籤 `無標籤`"
+    },
+    {
+      "file": "WorkVault/2025-CW36-CW37-週報.md",
+      "old_tags": [
+        "公司",
+        "daily",
+        "llapi",
+        "PPTREPORT",
+        "BRCM",
+        "WRT"
+      ],
+      "new_tags": [
+        "公司",
+        "daily",
+        "LLAPI",
+        "PPTREPORT",
+        "BRCM",
+        "WRT"
+      ],
+      "reason": "正規化 `llapi -> LLAPI`"
+    },
+    {
+      "file": "PersonalVault/2025環島旅行計畫.md",
+      "old_tags": [
+        "旅行",
+        "規劃"
+      ],
+      "new_tags": [
+        "旅遊",
+        "規劃"
+      ],
+      "reason": "正規化 `旅行 -> 旅遊`"
+    },
+    {
+      "file": "PersonalVault/ANT健身訓練課表.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/Dell-Inspiron-3000-筆電規格與購入記錄.md",
+      "old_tags": [
+        "紀錄",
+        "電腦",
+        "尺寸規格"
+      ],
+      "new_tags": [
+        "紀錄",
+        "電腦",
+        "規格"
+      ],
+      "reason": "正規化 `尺寸規格 -> 規格`"
+    },
+    {
+      "file": "PersonalVault/FitBox-大肌群循環訓練.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/Fitbox-核心循環訓練.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/Hitron-泰國員旅摘要.md",
+      "old_tags": [
+        "隨手記",
+        "公司",
+        "旅遊",
+        "blog"
+      ],
+      "new_tags": [
+        "隨手記",
+        "公司",
+        "旅遊",
+        "Blog"
+      ],
+      "reason": "正規化 `blog -> Blog`"
+    },
+    {
+      "file": "PersonalVault/TRX-徒手訓練-課表.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/TRX-訓練課表與參考資料.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/hinet帳號卡.md",
+      "old_tags": [
+        "記錄"
+      ],
+      "new_tags": [
+        "紀錄"
+      ],
+      "reason": "正規化 `記錄 -> 紀錄`"
+    },
+    {
+      "file": "PersonalVault/健身熱身動作清單.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/居家全身循環訓練.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/居家核心循環訓練.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/居家胸臂循環訓練.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/工作日重訓課表-穩醣減脂增肌.md",
+      "old_tags": [
+        "健身",
+        "規劃"
+      ],
+      "new_tags": [
+        "運動",
+        "規劃"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/柔軟度拉筋訓練方法.md",
+      "old_tags": [
+        "健身",
+        "隨手記"
+      ],
+      "new_tags": [
+        "運動",
+        "隨手記"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    },
+    {
+      "file": "PersonalVault/核心肌群訓練-課表.md",
+      "old_tags": [
+        "健身",
+        "清單"
+      ],
+      "new_tags": [
+        "運動",
+        "清單"
+      ],
+      "reason": "正規化 `健身 -> 運動`"
+    }
+  ]
+}
