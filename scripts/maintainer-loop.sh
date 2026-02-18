@@ -3,6 +3,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# OpenClaw runtime tree in container. externalize-runtime-md.sh scans under this root.
 OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/app}"
 OBSIDIAN_VAULT_DIR="${OBSIDIAN_VAULT_DIR:-/workspace/vault}"
 OBSTOOLS_DIR="${OBSTOOLS_DIR:-$OBSIDIAN_VAULT_DIR/ObsToolsVault}"
@@ -24,6 +25,7 @@ done
 mkdir -p "$STATE_DIR"
 "$SCRIPT_DIR/ensure-openclaw-config.sh"
 "$SCRIPT_DIR/ensure-zh-tw-default.sh"
+echo "[maintainer] init repo_dir=$OPENCLAW_REPO_DIR vault_dir=$OBSIDIAN_VAULT_DIR state_dir=$STATE_DIR init_externalize_md=$INIT_EXTERNALIZE_MD"
 
 if [ ! -f "$STATE_FILE" ]; then
   jq -n \
@@ -53,11 +55,6 @@ while true; do
   deleted_count="$(jq 'length' <<<"$deleted_json")"
   echo "[maintainer] scan changed=$changed_count deleted=$deleted_count ts=$now_utc"
 
-  changed_before_meta="$(jq -n \
-    --argjson current "$current_json" \
-    --argjson changed "$changed_json" \
-    'reduce ($changed[]?) as $path ({}; .[$path] = ($current[$path] // null))')"
-
   if [ "$changed_count" -eq 0 ] && [ "$deleted_count" -eq 0 ]; then
     tmp_state="$(mktemp)"
     jq \
@@ -69,6 +66,20 @@ while true; do
     sleep "$SCAN_INTERVAL_SEC"
     continue
   fi
+
+  current_tmp_before="$(mktemp)"
+  changed_tmp_before="$(mktemp)"
+  changed_before_meta_tmp="$(mktemp)"
+  printf '%s\n' "$current_json" >"$current_tmp_before"
+  printf '%s\n' "$changed_json" >"$changed_tmp_before"
+  jq -n \
+    --slurpfile current "$current_tmp_before" \
+    --slurpfile changed "$changed_tmp_before" \
+    '($current[0] // {}) as $current
+    | ($changed[0] // []) as $changed
+    | reduce ($changed[]?) as $path ({}; .[$path] = ($current[$path] // null))' \
+    >"$changed_before_meta_tmp"
+  rm -f "$current_tmp_before" "$changed_tmp_before"
 
   jq -n \
     --arg ts "$now_utc" \
@@ -117,15 +128,20 @@ EOF
   if "${agent_cmd[@]}"; then
     post_scan_json="$("$SCRIPT_DIR/scan-vault-hash.sh")"
     post_current_json="$(jq '.current' <<<"$post_scan_json")"
+    post_current_tmp="$(mktemp)"
+    printf '%s\n' "$post_current_json" >"$post_current_tmp"
     touched_count="$(jq -n \
-      --argjson before "$changed_before_meta" \
-      --argjson after "$post_current_json" \
-      '[($before | to_entries[])[] as $entry
+      --slurpfile before "$changed_before_meta_tmp" \
+      --slurpfile after "$post_current_tmp" \
+      '($before[0] // {}) as $before
+      | ($after[0] // {}) as $after
+      | [($before | to_entries[]) as $entry
         | $entry.key as $path
         | $entry.value as $before_meta
         | ($after[$path] // null) as $after_meta
         | select($before_meta == null or $after_meta == null or ($before_meta.sha256 != $after_meta.sha256))
       ] | length')"
+    rm -f "$changed_before_meta_tmp" "$post_current_tmp"
 
     if [ "$changed_count" -gt 0 ] && [ "$touched_count" -eq 0 ]; then
       echo "[maintainer] agent_no_effect changed=$changed_count touched=$touched_count"
@@ -193,6 +209,7 @@ EOF
       >"$QUEUE_FILE"
     fi
   else
+    rm -f "$changed_before_meta_tmp"
     retry_count="$(jq -r '.retry_count // 0' "$QUEUE_FILE")"
     next_retry=$((retry_count + 1))
 
