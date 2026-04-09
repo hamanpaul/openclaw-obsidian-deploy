@@ -6,7 +6,8 @@ services:
       dockerfile: ${OPENCLAW_OBSIDIAN_DOCKERFILE:-./Dockerfile}
       args:
         OPENCLAW_BASE_IMAGE: ${OPENCLAW_BASE_IMAGE:-openclaw:v2026.2.15}
-        OPENCLAW_DOCKER_APT_PACKAGES: ${OPENCLAW_DOCKER_APT_PACKAGES:-ca-certificates curl jq git ripgrep fd-find yq rsync tzdata python3 python-is-python3}
+        OPENCLAW_DOCKER_APT_PACKAGES: ${OPENCLAW_DOCKER_APT_PACKAGES:-ca-certificates curl jq git ripgrep fd-find yq rsync tzdata python3 python-is-python3 python3-yaml minicom}
+        OPENCLAW_INSTALL_OBSIDIAN_HEADLESS: ${OPENCLAW_INSTALL_OBSIDIAN_HEADLESS:-1}
         OPENCLAW_DOCKER_USER: ${OPENCLAW_DOCKER_USER:-1000:1000}
     user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
     working_dir: /app
@@ -39,6 +40,94 @@ services:
       - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
     entrypoint: ["/bin/bash"]
     command: ["/ops/scripts/maintainer-loop.sh"]
+    init: true
+    restart: unless-stopped
+
+  openclaw-obsidian-sync:
+    image: ${OPENCLAW_OBSIDIAN_IMAGE:-openclaw-obsidian:local}
+    profiles: ["obs"]
+    user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
+    working_dir: /app
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      OBSIDIAN_VAULT_DIR: /workspace/vault
+      OPENCLAW_REPO_DIR: /app
+    volumes:
+      - ${OBSIDIAN_VAULT_HOST_DIR}:/workspace/vault
+      - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
+      - ${OBSIDIAN_HEADLESS_CONFIG_HOST_DIR:-./.runtime/obsidian-headless}:/home/node/.config/obsidian-headless
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["/ops/scripts/obs-sync-entrypoint.sh"]
+    init: true
+    restart: on-failure
+
+  openclaw-obsidian-ops-companion:
+    image: ${OPENCLAW_OBSIDIAN_IMAGE:-openclaw-obsidian:local}
+    profiles: ["ops"]
+    user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
+    working_dir: /app
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      PICOCLAW_OPS_LISTEN_HOST: 0.0.0.0
+      PICOCLAW_OPS_LISTEN_PORT: ${PICOCLAW_OPS_LISTEN_PORT:-45450}
+    volumes:
+      - ${PICOCLAW_WORKSPACE_HOST_DIR:-./.runtime/picoclaw-workspace}:/home/node/.picoclaw/workspace
+      - ${OPS_COMPANION_CONFIG_HOST_DIR:-./.runtime/picoclaw-ops-companion}:/home/node/.config/picoclaw-ops-companion
+      - ${OPENCLAW_CONFIG_HOST_DIR}:/home/node/.openclaw
+    ports:
+      - "127.0.0.1:${PICOCLAW_OPS_LISTEN_PORT:-45450}:${PICOCLAW_OPS_LISTEN_PORT:-45450}"
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["/ops/scripts/ops-companion-entrypoint.sh"]
+    init: true
+    restart: unless-stopped
+
+  openclaw-obsidian-serialwrap:
+    image: ${OPENCLAW_OBSIDIAN_IMAGE:-openclaw-obsidian:local}
+    profiles: ["serialwrap"]
+    user: "${OPENCLAW_DOCKER_USER:-1000:1000}"
+    working_dir: /home/node
+    environment:
+      HOME: /home/node
+      TERM: xterm-256color
+      SERIALWRAP_INSTALL_ROOT: /home/node/.paul_tools
+      SERIALWRAP_PROFILE_DIR: /home/node/.config/serialwrap/profiles
+      SERIALWRAP_STATE_DIR: /home/node/.local/state/serialwrap
+      SERIALWRAP_RUN_DIR: /home/node/.local/state/serialwrap/run
+      SERIALWRAP_WAL_DIR: /home/node/.local/state/serialwrap/wal
+      SERIALWRAP_LOG_DIR: /home/node/.local/state/serialwrap/logs
+      SERIALWRAP_SOCKET_PATH: /home/node/.local/state/serialwrap/run/serialwrapd.sock
+      SERIALWRAP_LOCK_PATH: /home/node/.local/state/serialwrap/run/serialwrapd.lock
+      SERIALWRAP_SEED_DEFAULT_PROFILES: ${SERIALWRAP_SEED_DEFAULT_PROFILES:-1}
+      SERIALWRAP_AUTOBIND_DEFAULT_TARGET: ${SERIALWRAP_AUTOBIND_DEFAULT_TARGET:-1}
+      SERIALWRAP_BY_ID_DIR: ${SERIALWRAP_BY_ID_DIR:-/host-dev/serial/by-id}
+      SERIALWRAP_BY_PATH_DIR: ${SERIALWRAP_BY_PATH_DIR:-/host-dev/serial/by-path}
+    volumes:
+      - ${SERIALWRAP_PROFILES_HOST_DIR:-./.runtime/serialwrap/profiles}:/home/node/.config/serialwrap/profiles
+      - ${SERIALWRAP_STATE_HOST_DIR:-./.runtime/serialwrap/state}:/home/node/.local/state/serialwrap
+      - ${SERIALWRAP_HOST_DEV_DIR:-./.runtime/serialwrap/dev}:/host-dev
+    device_cgroup_rules:
+      - "c 166:* rmw"
+      - "c 188:* rmw"
+    entrypoint: ["/bin/bash", "-lc"]
+    command: ["/ops/scripts/serialwrap-entrypoint.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/home/node/.paul_tools/serialwrap-mcp",
+          "--socket",
+          "/home/node/.local/state/serialwrap/run/serialwrapd.sock",
+          "--tool",
+          "serialwrap_ping",
+          "--params",
+          "{}",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 2
+      start_period: 10s
     init: true
     restart: unless-stopped
 

@@ -8,6 +8,7 @@ ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env}"
 COMPOSE_FILE="${COMPOSE_FILE:-$ROOT_DIR/docker-compose.obsidian.yml}"
 TAIL_LINES="${TAIL_LINES:-120}"
 SKIP_BASE_IMAGE=0
+SKIP_EXTERNAL_SOURCES=0
 NO_LOGS=0
 DOWN_AFTER=0
 
@@ -18,6 +19,7 @@ usage: deploy-smoke.sh [options]
   --compose-file <path>  compose file path (default: ./docker-compose.obsidian.yml)
   --tail <n>             log tail lines (default: 120)
   --skip-base-image      skip prepare-openclaw-base-image.sh
+  --skip-external-sources skip prepare-external-sources.sh
   --no-logs              skip logs output
   --down-after           run compose down after checks
   -h, --help             show this help
@@ -46,6 +48,10 @@ while [ "$#" -gt 0 ]; do
     ;;
   --skip-base-image)
     SKIP_BASE_IMAGE=1
+    shift
+    ;;
+  --skip-external-sources)
+    SKIP_EXTERNAL_SOURCES=1
     shift
     ;;
   --no-logs)
@@ -187,16 +193,43 @@ if [ "$SKIP_BASE_IMAGE" -ne 1 ]; then
   OPENCLAW_BASE_VERSION="$(resolve_var OPENCLAW_BASE_VERSION "v2026.2.15")"
   export OPENCLAW_BASE_IMAGE
   OPENCLAW_BASE_IMAGE="$(resolve_var OPENCLAW_BASE_IMAGE "openclaw:v2026.2.15")"
+  export OPENCLAW_BASE_IMAGE_GIT_URL
+  OPENCLAW_BASE_IMAGE_GIT_URL="$(resolve_var OPENCLAW_BASE_IMAGE_GIT_URL "https://github.com/openclaw/openclaw.git")"
+  export OPENCLAW_BASE_IMAGE_CACHE_DIR
+  OPENCLAW_BASE_IMAGE_CACHE_DIR="$(resolve_var OPENCLAW_BASE_IMAGE_CACHE_DIR "$HOME/.cache/openclaw-obsidian-deploy/openclaw")"
   export OPENCLAW_BASE_IMAGE_CONTEXT
-  OPENCLAW_BASE_IMAGE_CONTEXT="$(resolve_var OPENCLAW_BASE_IMAGE_CONTEXT "/home/paul_chen/ref/code/openclaw")"
+  OPENCLAW_BASE_IMAGE_CONTEXT="$(resolve_var OPENCLAW_BASE_IMAGE_CONTEXT "")"
   export OPENCLAW_BASE_IMAGE_DOCKERFILE
-  OPENCLAW_BASE_IMAGE_DOCKERFILE="$(resolve_var OPENCLAW_BASE_IMAGE_DOCKERFILE "$OPENCLAW_BASE_IMAGE_CONTEXT/Dockerfile")"
+  OPENCLAW_BASE_IMAGE_DOCKERFILE="$(resolve_var OPENCLAW_BASE_IMAGE_DOCKERFILE "")"
   export OPENCLAW_DOCKER_APT_PACKAGES
   OPENCLAW_DOCKER_APT_PACKAGES="$(resolve_var OPENCLAW_DOCKER_APT_PACKAGES "")"
   echo "[deploy-smoke] prepare base image: $OPENCLAW_BASE_IMAGE (version: $OPENCLAW_BASE_VERSION)"
   "$SCRIPT_DIR/prepare-openclaw-base-image.sh"
 else
   echo "[deploy-smoke] skip base image build"
+fi
+
+if [ "$SKIP_EXTERNAL_SOURCES" -ne 1 ]; then
+  export OPENCLAW_EXTERNAL_SOURCES_DIR
+  OPENCLAW_EXTERNAL_SOURCES_DIR="$(resolve_var OPENCLAW_EXTERNAL_SOURCES_DIR "./build-context/external-sources")"
+  export OPENCLAW_EXTERNAL_CACHE_DIR
+  OPENCLAW_EXTERNAL_CACHE_DIR="$(resolve_var OPENCLAW_EXTERNAL_CACHE_DIR "$HOME/.cache/openclaw-obsidian-deploy/external-sources")"
+  export CUSTOM_CLAW_TOOLS_GIT_URL
+  CUSTOM_CLAW_TOOLS_GIT_URL="$(resolve_var CUSTOM_CLAW_TOOLS_GIT_URL "https://github.com/hamanpaul/custom-claw-tools.git")"
+  export CUSTOM_CLAW_TOOLS_REF
+  CUSTOM_CLAW_TOOLS_REF="$(resolve_var CUSTOM_CLAW_TOOLS_REF "main")"
+  export CUSTOM_SKILLS_GIT_URL
+  CUSTOM_SKILLS_GIT_URL="$(resolve_var CUSTOM_SKILLS_GIT_URL "https://github.com/hamanpaul/custom-skills.git")"
+  export CUSTOM_SKILLS_REF
+  CUSTOM_SKILLS_REF="$(resolve_var CUSTOM_SKILLS_REF "main")"
+  export SERIALWRAP_GIT_URL
+  SERIALWRAP_GIT_URL="$(resolve_var SERIALWRAP_GIT_URL "https://github.com/hamanpaul/serialwrap.git")"
+  export SERIALWRAP_REF
+  SERIALWRAP_REF="$(resolve_var SERIALWRAP_REF "main")"
+  echo "[deploy-smoke] prepare external sources"
+  "$SCRIPT_DIR/prepare-external-sources.sh"
+else
+  echo "[deploy-smoke] skip external source snapshot"
 fi
 
 echo "[deploy-smoke] compose config"

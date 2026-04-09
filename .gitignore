@@ -5,3 +5,6 @@ logs/
 .openclaw/
 obsidian_vault/
 vault/
+.runtime/
+build-context/external-sources/*
+!build-context/external-sources/.gitkeep
