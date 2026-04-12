@@ -1,7 +1,7 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.2.10",
-    "lastTouchedAt": "2026-02-13T01:38:34.965Z"
+    "lastTouchedVersion": "2026.4.11",
+    "lastTouchedAt": "2026-04-11T00:00:00.000Z"
   },
   "gateway": {
     "mode": "local",
@@ -27,12 +27,24 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "github-copilot/gpt-5-mini"
+        "primary": "google/gemini-3.1-flash-lite-preview"
       },
       "models": {
+        "google/gemini-3.1-flash-lite-preview": {},
         "github-copilot/gpt-5-mini": {}
       }
     }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": [
+        "/home/appuser/.agents/skills"
+      ]
+    }
+  },
+  "cron": {
+    "enabled": true,
+    "store": "/home/appuser/.openclaw/cron.json"
   },
   "messages": {
     "ackReactionScope": "group-mentions"

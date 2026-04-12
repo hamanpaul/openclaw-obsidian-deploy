@@ -1,6 +1,7 @@
 .env
 logs/
 *.tar.gz
+sensitive_backup.b64
 *.log
 .openclaw/
 obsidian_vault/

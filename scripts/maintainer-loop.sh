@@ -2,14 +2,9 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/runtime-common.sh"
 
 # OpenClaw runtime tree in container. externalize-runtime-md.sh scans under this root.
-OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/app}"
-OBSIDIAN_VAULT_DIR="${OBSIDIAN_VAULT_DIR:-/workspace/vault}"
-OBSTOOLS_DIR="${OBSTOOLS_DIR:-$OBSIDIAN_VAULT_DIR/ObsToolsVault}"
-STATE_DIR="${STATE_DIR:-$OBSTOOLS_DIR/state}"
-STATE_FILE="${STATE_FILE:-$STATE_DIR/openclaw_obsidian_state.json}"
-QUEUE_FILE="${QUEUE_FILE:-$STATE_DIR/openclaw_obsidian_queue.json}"
 SCAN_INTERVAL_SEC="${SCAN_INTERVAL_SEC:-60}"
 INIT_EXTERNALIZE_MD="${INIT_EXTERNALIZE_MD:-1}"
 MIGRATION_SUGGESTIONS_FILE="${MIGRATION_SUGGESTIONS_FILE:-$OBSTOOLS_DIR/specs/migration_suggestions.md}"
@@ -99,7 +94,7 @@ while true; do
   fi
 
   prompt="$(cat <<EOF
-執行 Obsidian 維護任務，使用 skills: obsidian。
+執行 Obsidian 維護任務。可視需要使用已安裝的 Obsidian skills，例如 obsidian-markdown、obsidian-moc、obsidian-bases、obsidian-atomize、obsidian-migration、obsidian-cli。
 
 規則來源：
 - $OBSTOOLS_DIR/*.md

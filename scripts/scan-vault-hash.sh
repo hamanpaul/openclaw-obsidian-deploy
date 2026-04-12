@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OBSIDIAN_VAULT_DIR="${OBSIDIAN_VAULT_DIR:-/workspace/vault}"
-STATE_FILE="${STATE_FILE:-$OBSIDIAN_VAULT_DIR/ObsToolsVault/state/openclaw_obsidian_state.json}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/runtime-common.sh"
 
 if command -v fd >/dev/null 2>&1; then
   FD_BIN="$(command -v fd)"

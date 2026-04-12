@@ -1,5 +1,10 @@
 {
   "providers": {
+    "google": {
+      "models": [
+        "gemini-3.1-flash-lite-preview"
+      ]
+    },
     "github-copilot": {
       "baseUrl": "https://api.business.githubcopilot.com",
       "models": [
