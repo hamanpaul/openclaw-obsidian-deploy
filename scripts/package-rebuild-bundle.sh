@@ -4,8 +4,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OPS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-vault_dir="${OBSIDIAN_VAULT_HOST_DIR:-$HOME/obsidian_vault}"
+workspace_dir="${OPENCLAW_WORKSPACE_HOST_DIR:-$HOME/openclaw-workspace}"
 config_dir="${OPENCLAW_CONFIG_HOST_DIR:-$HOME/.openclaw}"
+docs_dir="${OPENCLAW_EXTERNAL_MD_HOST_DIR:-$workspace_dir/openclaw-docs}"
+state_dir="${OPENCLAW_STATE_HOST_DIR:-$workspace_dir/.openclaw-state}"
 include_auth=0
 out_file=""
 
@@ -49,11 +51,12 @@ if [ -z "$out_file" ]; then
   out_file="$OPS_DIR/openclaw-obsidian-rebuild-$("/usr/bin/date" -u +%Y%m%d-%H%M%S).tar.gz"
 fi
 
-required_paths=(
-  "$OPS_DIR"
-  "$vault_dir/openclaw"
-  "$vault_dir/ObsToolsVault/specs"
-  "$vault_dir/ObsToolsVault/state"
+required_paths=("$OPS_DIR")
+
+optional_paths=(
+  "$workspace_dir"
+  "$docs_dir"
+  "$state_dir"
 )
 
 for path in "${required_paths[@]}"; do
@@ -63,12 +66,13 @@ for path in "${required_paths[@]}"; do
   fi
 done
 
-pack_paths=(
-  "$OPS_DIR"
-  "$vault_dir/openclaw"
-  "$vault_dir/ObsToolsVault/specs"
-  "$vault_dir/ObsToolsVault/state"
-)
+pack_paths=("$OPS_DIR")
+
+for path in "${optional_paths[@]}"; do
+  if [ -e "$path" ]; then
+    pack_paths+=("$path")
+  fi
+done
 
 if [ "$include_auth" -eq 1 ]; then
   if [ ! -d "$config_dir" ]; then

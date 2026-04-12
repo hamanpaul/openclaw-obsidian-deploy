@@ -19,31 +19,12 @@ install_skill_dir() {
   rsync -a --delete --exclude '.git' "$src"/ "$dest"/
 }
 
-if [ -x "$CUSTOM_SKILLS_ROOT/install.sh" ]; then
-  "$CUSTOM_SKILLS_ROOT/install.sh" --all --force --dest "$OPENCLAW_SKILLS_DIR"
-fi
-
-while IFS= read -r -d '' skill_link; do
-  skill_target="$(readlink -f "$skill_link")"
-  skill_name="$(basename "$skill_link")"
-  rm -f "$skill_link"
-  install_skill_dir "$skill_target" "$skill_name"
-done < <(find "$OPENCLAW_SKILLS_DIR" -mindepth 1 -maxdepth 1 -type l -print0)
-
-for skill_dir in \
-  "$CUSTOM_CLAW_TOOLS_ROOT/obs-auto-moc" \
-  "$CUSTOM_CLAW_TOOLS_ROOT/health-tracker"
-do
-  install_skill_dir "$skill_dir"
+old_ifs="$IFS"
+IFS=':'
+for skill_root in $OPENCLAW_ADDON_SKILL_DIRS; do
+  [ -d "$skill_root" ] || continue
+  while IFS= read -r -d '' skill_dir; do
+    install_skill_dir "$skill_dir"
+  done < <(find "$skill_root" -mindepth 1 -maxdepth 2 -type d -print0)
 done
-
-for parent in \
-  "$CUSTOM_CLAW_TOOLS_ROOT/famiclean-skill/skills" \
-  "$CUSTOM_CLAW_TOOLS_ROOT/picoclaw-ops-companion/skills"
-do
-  if [ -d "$parent" ]; then
-    while IFS= read -r -d '' skill_dir; do
-      install_skill_dir "$skill_dir"
-    done < <(find "$parent" -mindepth 1 -maxdepth 1 -type d -print0)
-  fi
-done
+IFS="$old_ifs"

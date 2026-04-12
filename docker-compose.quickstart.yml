@@ -1,0 +1,37 @@
+services:
+  openclaw-quickstart:
+    image: ${OPENCLAW_RUNTIME_IMAGE:-openclaw-runtime:local}
+    build:
+      context: ${OPENCLAW_OPS_DIR:-.}
+      dockerfile: ${OPENCLAW_DOCKERFILE:-./Dockerfile}
+      args:
+        OPENCLAW_BASE_OS_IMAGE: ${OPENCLAW_BASE_OS_IMAGE:-ubuntu:24.04}
+        OPENCLAW_DOCKER_USER: ${OPENCLAW_DOCKER_USER:-1000:1000}
+        OPENCLAW_GIT_URL: ${OPENCLAW_GIT_URL:-https://github.com/openclaw/openclaw.git}
+        OPENCLAW_REF: ${OPENCLAW_REF:-main}
+        OPENCLAW_NODE_MAJOR: ${OPENCLAW_NODE_MAJOR:-22}
+        OPENCLAW_TZ: ${OPENCLAW_TZ:-UTC}
+    working_dir: /app
+    environment:
+      HOME: /home/appuser
+      OPENCLAW_REPO_DIR: /app
+      OPENCLAW_CONFIG_DIR: /home/appuser/.openclaw
+      OPENCLAW_WORKSPACE_DIR: /workspace
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}
+      OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_PORT:-18789}
+      OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH: ${OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH:-1}
+      OPENCLAW_DEFAULT_MODEL: ${OPENCLAW_DEFAULT_MODEL:-github-copilot/gpt-5-mini}
+      OPENCLAW_DEFAULT_PROFILE_ID: ${OPENCLAW_DEFAULT_PROFILE_ID:-github-copilot:github}
+      OPENCLAW_BOOTSTRAP_AGENTS_FILE: ${OPENCLAW_BOOTSTRAP_AGENTS_FILE:-0}
+    volumes:
+      - ${OPENCLAW_CONFIG_HOST_DIR:-./build-context/local-test/quickstart/.openclaw}:/home/appuser/.openclaw
+      - ${OPENCLAW_WORKSPACE_HOST_DIR:-./build-context/local-test/quickstart/workspace}:/workspace
+    ports:
+      - "${OPENCLAW_GATEWAY_PORT:-18789}:${OPENCLAW_GATEWAY_PORT:-18789}"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}/healthz >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 45s
+    restart: unless-stopped

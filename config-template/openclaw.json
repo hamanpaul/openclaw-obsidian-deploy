@@ -1,7 +1,7 @@
 {
   "meta": {
-    "lastTouchedVersion": "2026.4.11",
-    "lastTouchedAt": "2026-04-11T00:00:00.000Z"
+    "lastTouchedVersion": "2026.4.12",
+    "lastTouchedAt": "2026-04-12T00:00:00.000Z"
   },
   "gateway": {
     "mode": "local",
@@ -27,10 +27,9 @@
   "agents": {
     "defaults": {
       "model": {
-        "primary": "google/gemini-3.1-flash-lite-preview"
+        "primary": "github-copilot/gpt-5-mini"
       },
       "models": {
-        "google/gemini-3.1-flash-lite-preview": {},
         "github-copilot/gpt-5-mini": {}
       }
     }

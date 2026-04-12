@@ -4,6 +4,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/runtime-common.sh"
 
+scan_root="${OPENCLAW_SCAN_ROOT:-$OBSIDIAN_VAULT_DIR}"
+scan_exclude_regex="${OPENCLAW_SCAN_EXCLUDE_REGEX:-/\\.obsidian/|/\\.git/|/\\.openclaw-state/}"
+
 if command -v fd >/dev/null 2>&1; then
   FD_BIN="$(command -v fd)"
 elif command -v fdfind >/dev/null 2>&1; then
@@ -26,13 +29,13 @@ tmp_current_map="$(mktemp)"
 tmp_prev_map="$(mktemp)"
 trap 'rm -f "$tmp_files" "$tmp_ndjson" "$tmp_current_map" "$tmp_prev_map"' EXIT
 
-"$FD_BIN" -HI -tf --glob '*.md' "$OBSIDIAN_VAULT_DIR" \
-  | rg -v '/\.obsidian/|/ObsToolsVault/state/' \
+"$FD_BIN" -HI -tf --glob '*.md' "$scan_root" \
+  | rg -v "$scan_exclude_regex" \
   | LC_ALL=C sort >"$tmp_files"
 
 while IFS= read -r abs_path; do
   [ -n "$abs_path" ] || continue
-  rel_path="${abs_path#"$OBSIDIAN_VAULT_DIR"/}"
+  rel_path="${abs_path#"$scan_root"/}"
   sha256="$(sha256sum "$abs_path" | awk '{print $1}')"
   mtime_epoch="$(stat -c '%Y' "$abs_path")"
 

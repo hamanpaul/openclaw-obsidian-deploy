@@ -21,13 +21,9 @@ shift || true
 
 unit_to_program() {
   case "$1" in
-    openclaw-gateway.service) echo "openclaw-gateway" ;;
-    maintainer-loop.service) echo "maintainer-loop" ;;
-    obsidian-sync.service) echo "obsidian-sync" ;;
-    obs-auto-moc-listener.service) echo "obs-auto-moc-listener" ;;
-    picoclaw-ops-companion-listener.service) echo "picoclaw-ops-companion" ;;
-    fami-ghome.service) echo "fami-ghome" ;;
-    supercronic.service) echo "supercronic" ;;
+    *.service)
+      printf '%s\n' "${1%.service}"
+      ;;
     *)
       return 1
       ;;
