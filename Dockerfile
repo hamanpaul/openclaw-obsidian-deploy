@@ -127,7 +127,7 @@ ENV PATH=/home/appuser/.local/bin:/usr/local/bin:/usr/bin:/bin
 ENV NODE_ENV=production
 ENV OPENCLAW_GATEWAY_TOKEN=local-dev-token
 ENV OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH=1
-ENV OPENCLAW_DEFAULT_MODEL=github-copilot/gpt-5-mini
+ENV OPENCLAW_DEFAULT_MODEL=github-copilot/claude-haiku-4.5
 ENV OPENCLAW_DEFAULT_PROFILE_ID=github-copilot:github
 
 WORKDIR /app
