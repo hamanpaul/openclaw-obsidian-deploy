@@ -1,243 +1,227 @@
 # openclaw-obsidian-deploy
 
-純部署 repo，僅保留 OpenClaw + Obsidian 維護所需檔案，已移除個人資料依賴（auth token、私人筆記、操作紀錄）。
+Public-first Docker packaging for OpenClaw.
 
-## 內容
+這份 README 只講 **最短可用指令**：
 
-- `Dockerfile`：以 `OPENCLAW_BASE_IMAGE` 為基底的薄包裝映像。
-- `docker-compose.obsidian.yml`：維護服務部署（maintainer + gateway）。
-- `.env.example`：部署參數範本（無個資）。
-- `scripts/`：基底映像建置、一鍵 smoke 測試、掃描、外部化、主循環、一鍵打包腳本。
-- `docs/path-mapping.md`：host/container 路徑對映說明。
+1. 如何安裝
+2. 如何建立容器
+3. 如何掛載 sensitive / 個人化資料
+4. 如何登入 OpenClaw（OAuth / API key）
+5. 如何備份與還原
 
-## 個資邊界
-
-- 不含 `.env`、`~/.openclaw`、`logs/`、任何筆記內容。
-- 認證資料僅透過容器掛載 `OPENCLAW_CONFIG_HOST_DIR` 讀取，不進 repo。
-
-## 快速部署（兩段式）
-
-1) 建立環境檔：
+## 1. 安裝
 
 ```bash
-/bin/cp ./.env.example ./.env
-```
-
-2) 編輯 `.env`（至少改這些）：
-
-- `OBSIDIAN_VAULT_HOST_DIR`
-- `OPENCLAW_CONFIG_HOST_DIR`
-- `OPENCLAW_DOCKER_USER`
-- `OPENCLAW_BASE_IMAGE`
-- `OPENCLAW_BASE_IMAGE_CONTEXT`
-- `OPENCLAW_BASE_IMAGE_DOCKERFILE`
-- `OPENCLAW_DEFAULT_MODEL`
-- `OPENCLAW_DEFAULT_PROFILE_ID`
-- `OPENCLAW_ENABLE_TELEGRAM_PLUGIN`
-
-3) 先建 OpenClaw 基底映像（固定 `v2026.2.15`）：
-
-```bash
-./scripts/prepare-openclaw-base-image.sh
-```
-
-4) 建置 orchestration 映像並啟動服務：
-
-```bash
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml build
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml up -d
-```
-
-若你要「只建立 container，不立即啟動」，請改用：
-
-```bash
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml create
-```
-
-之後再啟動：
-
-```bash
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml start
-```
-
-5) 看狀態與日誌：
-
-```bash
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml ps
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs --tail=120 openclaw-obsidian-maintainer
-/usr/bin/docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs --tail=120 openclaw-obsidian-gateway
-```
-
-6) 登入 GitHub Copilot（runtime）：
-
-```bash
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer node /app/openclaw.mjs models auth login-github-copilot --profile-id github-copilot:github --yes
-```
-
-> OAuth/auth 僅寫入掛載的 `OPENCLAW_CONFIG_HOST_DIR`，不進 image layer。
-
-7) Telegram 設定（channel + pairing）：
-
-```bash
-# 加入 Telegram channel（使用新 token，勿貼進 repo）
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs channels add --channel telegram --account default --token "<telegram-bot-token>"
-
-# 查看待配對請求（在 Telegram 對 bot 發訊息後會出現 code）
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs pairing list telegram
-
-# 核准配對（code 例：7LU2CZ3H）
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs pairing approve telegram 7LU2CZ3H --notify
-```
-
-8) 確認 `main` agent 預設模型（部署會自動設定，避免回退到 `anthropic/*`）：
-
-```bash
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer \
-  node /app/openclaw.mjs models status --agent main --json
-```
-
-## Control UI
-
-- URL：`http://localhost:${OPENCLAW_GATEWAY_PORT:-18789}`
-- 預設 token：`${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}`
-- 若要關閉 HTTP token-only 連線：`.env` 設 `OPENCLAW_CONTROL_UI_ALLOW_INSECURE_AUTH=0` 後重啟 compose。
-
-## 完整部署指令
-
-```bash
-cd /home/paul_chen/prj_pri/openclaw-obsidian-deploy
-
+git clone https://github.com/your-org/openclaw-obsidian-deploy.git
+cd openclaw-obsidian-deploy
 cp .env.example .env
-# 編輯 .env，至少設定：
-# - OBSIDIAN_VAULT_HOST_DIR
-# - OPENCLAW_CONFIG_HOST_DIR
-# - OPENCLAW_DOCKER_USER
-# - OPENCLAW_BASE_IMAGE
-# - OPENCLAW_BASE_IMAGE_CONTEXT
-# - OPENCLAW_BASE_IMAGE_DOCKERFILE
-# - OPENCLAW_DEFAULT_MODEL
-# - OPENCLAW_DEFAULT_PROFILE_ID
-# - OPENCLAW_ENABLE_TELEGRAM_PLUGIN
+```
 
-./scripts/prepare-openclaw-base-image.sh
+## 2. 建立 host 掛載目錄
 
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml build
+### 最小 base runtime
 
-# 只建立 container（不啟動）
-# docker compose --env-file ./.env -f ./docker-compose.obsidian.yml create
+```bash
+mkdir -p ./mounts/openclaw-config ./mounts/openclaw-workspace ./backup
+sed -i 's#^OPENCLAW_CONFIG_HOST_DIR=.*#OPENCLAW_CONFIG_HOST_DIR=./mounts/openclaw-config#' .env
+sed -i 's#^OPENCLAW_WORKSPACE_HOST_DIR=.*#OPENCLAW_WORKSPACE_HOST_DIR=./mounts/openclaw-workspace#' .env
+```
 
-# 建立並啟動（常用）
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml up -d
+### addon example（可選）
 
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml ps
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs --tail=120 openclaw-obsidian-maintainer
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml logs --tail=120 openclaw-obsidian-gateway
+```bash
+mkdir -p ./mounts/openclaw-addons-config ./mounts/openclaw-addons-workspace
+sed -i 's#^OPENCLAW_ADDONS_CONFIG_HOST_DIR=.*#OPENCLAW_ADDONS_CONFIG_HOST_DIR=./mounts/openclaw-addons-config#' .env
+sed -i 's#^OPENCLAW_ADDONS_WORKSPACE_HOST_DIR=.*#OPENCLAW_ADDONS_WORKSPACE_HOST_DIR=./mounts/openclaw-addons-workspace#' .env
+```
 
-# (可選) OAuth 登入
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer \
+## 3. 掛載用途
+
+| 變數 | 建議內容 | 性質 |
+| --- | --- | --- |
+| `OPENCLAW_CONFIG_HOST_DIR` | `.openclaw` 設定、OAuth / token、cron store | **sensitive** |
+| `OPENCLAW_WORKSPACE_HOST_DIR` | notes、memory、匯出文件、runtime state | **個人化 / stateful** |
+| `OPENCLAW_ADDONS_CONFIG_HOST_DIR` | addon example 的 `.openclaw` | **sensitive** |
+| `OPENCLAW_ADDONS_WORKSPACE_HOST_DIR` | addon example 的 workspace | **個人化 / stateful** |
+
+原則只有一條：
+
+- **所有 sensitive / 個人化資料都放在 host mount，不放進 image。**
+
+## 4. 建立 base 容器
+
+### build
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml build
+```
+
+### up
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml up -d
+```
+
+### 檢查狀態
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml ps
+curl -fsS http://127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}/healthz
+```
+
+### 常用操作
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml logs -f openclaw-quickstart
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml restart
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml down
+```
+
+## 5. 登入 OpenClaw
+
+### OAuth：GitHub Copilot
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart \
   node /app/openclaw.mjs models auth login-github-copilot --profile-id github-copilot:github --yes
-
-# Telegram channel + pairing
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs channels add --channel telegram --account default --token "<telegram-bot-token>"
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs pairing list telegram
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs pairing approve telegram <pairing-code> --notify
-
-# 確認 main agent 預設模型（部署會自動設定）
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-maintainer \
-  node /app/openclaw.mjs models status --agent main --json
-
-# 停止服務
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml down
 ```
 
-## 一鍵 Smoke 測試
+### OAuth / API key：通用 provider flow
 
 ```bash
-./scripts/deploy-smoke.sh --env-file ./.env
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart \
+  node /app/openclaw.mjs models auth login --provider <provider> --method <method> --set-default
 ```
 
-常用選項：
+常見用法：
 
-- `--skip-base-image`：略過基底映像建置。
-- `--down-after`：檢查完成後自動 `compose down`。
-- `--tail 200`：自訂 logs tail 行數。
-- `--no-logs`：只做 build/up/ps，不輸出 logs。
-- 啟動前會先檢查 `OPENCLAW_CONFIG_HOST_DIR` 是否存在，且在 `OPENCLAW_DOCKER_USER` 與目前登入使用者一致時可寫入。
+- OAuth：`--method oauth`
+- API key：`--method api-key`
 
-## 部署故障排除
-
-- `Unknown channel: telegram`
-  - 部署啟動時會由 `/ops/scripts/ensure-openclaw-config.sh` 自動啟用 `telegram` plugin（可用 `.env` 的 `OPENCLAW_ENABLE_TELEGRAM_PLUGIN=0` 關閉）。
-- `No API key found for provider "anthropic"`
-  - 部署啟動時會自動將 `main` agent 預設模型設為 `OPENCLAW_DEFAULT_MODEL`（預設 `github-copilot/gpt-5-mini`）。
-- `Container restarting` 且提到無法寫入 `/home/node/.openclaw/openclaw.json`
-  - 這是 host 掛載目錄權限問題，無法在 Dockerfile 直接修復。
-  - 修正方式：
+### 直接貼 token
 
 ```bash
-sudo chown -R <uid>:<gid> <OPENCLAW_CONFIG_HOST_DIR>
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart \
+  node /app/openclaw.mjs models auth paste-token --provider <provider> --profile-id <provider>:manual
 ```
 
-  - 例如 `.env` 是 `OPENCLAW_DOCKER_USER=1000:1000`：
+### 設定預設模型
 
 ```bash
-sudo chown -R 1000:1000 /home/paul_chen/.openclaw
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart \
+  node /app/openclaw.mjs models set <provider>/<model>
 ```
 
-- `maintainer` 重複重啟且出現 `jq: Argument list too long`
-  - 這個 repo 已在 `scripts/maintainer-loop.sh` 修正（改用暫存檔 + `jq --slurpfile`）。
-  - 若仍看到舊錯誤，請重新 build/recreate：
+### 列出可用模型
 
 ```bash
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml build
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml up -d --force-recreate
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml exec -it openclaw-quickstart \
+  node /app/openclaw.mjs models list
 ```
 
-- Telegram 回覆出現 `400 {"message":"","code":"invalid_request_body"}`
-  - 先在 Telegram 對話送 `/new` 重開 session，再重試。
-- CLI 顯示 `gateway connect failed: Error: pairing required`
-  - 這通常發生在容器內以 LAN 位址連 gateway，裝置尚未配對。
-  - 改用 loopback + token 執行命令（避開 LAN 配對流程）：
+## 6. 建立 addon example 容器（可選）
+
+### build
 
 ```bash
-docker compose --env-file ./.env -f ./docker-compose.obsidian.yml exec -it openclaw-obsidian-gateway \
-  node /app/openclaw.mjs logs --url ws://127.0.0.1:18789 --token "${OPENCLAW_GATEWAY_TOKEN:-local-dev-token}" --plain
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml build
 ```
 
-- `maintainer` 顯示 `agent_no_effect` 且回報 `skills: obsidian` 不存在
-  - 這是任務提示詞指定了未安裝 skill，不是容器崩潰。
-  - 建議修正 `scripts/maintainer-loop.sh` prompt（移除 `skills: obsidian`）或安裝對應 skill。
-
-## 一鍵打包（遷移重建）
-
-不含 auth：
+### up
 
 ```bash
-./scripts/package-rebuild-bundle.sh
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml up -d
 ```
 
-包含 auth（會打包 `~/.openclaw`）：
+### 檢查狀態
 
 ```bash
-./scripts/package-rebuild-bundle.sh --with-auth
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml ps
+curl -fsS http://127.0.0.1:${OPENCLAW_ADDONS_GATEWAY_PORT:-18790}/healthz
+cat "${OPENCLAW_ADDONS_WORKSPACE_HOST_DIR:-./mounts/openclaw-addons-workspace}/addons-example/state/heartbeat.json"
 ```
 
-## 變數遷移
+### 關閉
 
-以下變數已廢棄，不再用於 build OpenClaw 本體：
+```bash
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml down
+```
 
-- `OPENCLAW_REPO_GIT_URL`
-- `OPENCLAW_REPO_REF`
+## 7. 備份 sensitive / 個人化資料
 
-## 相關文件
+### 先停容器
 
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml down
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml down 2>/dev/null || true
+```
+
+### 備份 base mount
+
+```bash
+tar -C ./mounts -czf "./backup/openclaw-config-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" openclaw-config
+tar -C ./mounts -czf "./backup/openclaw-workspace-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" openclaw-workspace
+```
+
+### 備份 addon mount（如果有用）
+
+```bash
+tar -C ./mounts -czf "./backup/openclaw-addons-config-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" openclaw-addons-config
+tar -C ./mounts -czf "./backup/openclaw-addons-workspace-$(date -u +%Y%m%dT%H%M%SZ).tar.gz" openclaw-addons-workspace
+```
+
+## 8. 還原 sensitive / 個人化資料
+
+### 建回目錄
+
+```bash
+mkdir -p ./mounts/openclaw-config ./mounts/openclaw-workspace
+mkdir -p ./mounts/openclaw-addons-config ./mounts/openclaw-addons-workspace
+```
+
+### 還原 base mount
+
+```bash
+tar -xzf ./backup/openclaw-config-<timestamp>.tar.gz -C ./mounts
+tar -xzf ./backup/openclaw-workspace-<timestamp>.tar.gz -C ./mounts
+```
+
+### 還原 addon mount（如果有用）
+
+```bash
+tar -xzf ./backup/openclaw-addons-config-<timestamp>.tar.gz -C ./mounts
+tar -xzf ./backup/openclaw-addons-workspace-<timestamp>.tar.gz -C ./mounts
+```
+
+### 重建容器
+
+```bash
+docker compose --env-file ./.env -f ./docker-compose.quickstart.yml up -d
+docker compose --env-file ./.env -f ./docker-compose.addons.example.yml up -d
+```
+
+## 9. 一鍵 smoke test
+
+### base
+
+```bash
+./scripts/deploy-smoke.sh --down-after
+```
+
+### addon example
+
+```bash
+COMPOSE_FILE=./docker-compose.addons.example.yml \
+SERVICE_NAME=openclaw-addons-example \
+HEALTH_URL=http://127.0.0.1:${OPENCLAW_ADDONS_GATEWAY_PORT:-18790}/healthz \
+./scripts/deploy-smoke.sh --down-after
+```
+
+## 10. 相關文件
+
+- `docs/path-mapping.md`
 - `docs/enhance-plan.md`
 - `docs/enhance-spec.md`
-- `docs/path-mapping.md`
-- `todo.md`
+- `docs/failed-design-exp.md`

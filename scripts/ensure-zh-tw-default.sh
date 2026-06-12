@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/home/node/.openclaw/workspace}"
+source /ops/scripts/runtime-common.sh
+
+WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/workspace}"
 AGENTS_FILE="${WORKSPACE_DIR}/AGENTS.md"
 MARKER="openclaw-obsidian-deploy:zh-tw-default"
 

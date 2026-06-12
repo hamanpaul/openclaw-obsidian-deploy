@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export HOME="${HOME:-/home/appuser}"
+export PATH="${HOME}/.local/bin:/usr/local/bin:/usr/bin:/bin"
+export OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/app}"
+export OPENCLAW_DEFAULTS_DIR="${OPENCLAW_DEFAULTS_DIR:-/opt/openclaw-defaults}"
+export OPENCLAW_WORKSPACE_DIR="${OPENCLAW_WORKSPACE_DIR:-/workspace}"
+export OPENCLAW_CONFIG_DIR="${OPENCLAW_CONFIG_DIR:-$HOME/.openclaw}"
+export OBSIDIAN_VAULT_DIR="${OBSIDIAN_VAULT_DIR:-$OPENCLAW_WORKSPACE_DIR}"
+export OPENCLAW_SKILLS_DIR="${OPENCLAW_SKILLS_DIR:-$HOME/.agents/skills}"
+export OPENCLAW_CRON_STORE="${OPENCLAW_CRON_STORE:-$OPENCLAW_CONFIG_DIR/cron.json}"
+export SUPERCRONIC_CRONTAB_PATH="${SUPERCRONIC_CRONTAB_PATH:-$HOME/.local/state/openclaw/supercronic.crontab}"
+export SUPERVISOR_CONFIG="${SUPERVISOR_CONFIG:-/etc/supervisor/supervisord.conf}"
+export OPENCLAW_CRON_TZ="${OPENCLAW_CRON_TZ:-UTC}"
+export OPENCLAW_ADDONS_ROOT="${OPENCLAW_ADDONS_ROOT:-/opt/openclaw-addons}"
+export OPENCLAW_ADDON_BIN_DIRS="${OPENCLAW_ADDON_BIN_DIRS:-$OPENCLAW_ADDONS_ROOT/bin}"
+export OPENCLAW_ADDON_SKILL_DIRS="${OPENCLAW_ADDON_SKILL_DIRS:-$OPENCLAW_ADDONS_ROOT/skills}"
+export OPENCLAW_CRON_FRAGMENT_DIRS="${OPENCLAW_CRON_FRAGMENT_DIRS:-/etc/openclaw-addons/cron.d}"
+export OPENCLAW_STATE_DIR="${OPENCLAW_STATE_DIR:-$OPENCLAW_WORKSPACE_DIR/.openclaw-state}"
+export STATE_DIR="${STATE_DIR:-$OPENCLAW_STATE_DIR}"
+export STATE_FILE="${STATE_FILE:-$STATE_DIR/runtime-state.json}"
+export MANIFEST_FILE="${MANIFEST_FILE:-$STATE_DIR/external-markdown-manifest.json}"

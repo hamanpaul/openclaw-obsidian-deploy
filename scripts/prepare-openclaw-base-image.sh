@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OPENCLAW_BASE_VERSION="${OPENCLAW_BASE_VERSION:-v2026.2.15}"
-OPENCLAW_BASE_IMAGE="${OPENCLAW_BASE_IMAGE:-openclaw:v2026.2.15}"
-OPENCLAW_BASE_IMAGE_CONTEXT="${OPENCLAW_BASE_IMAGE_CONTEXT:-/home/paul_chen/ref/code/openclaw}"
-OPENCLAW_BASE_IMAGE_DOCKERFILE="${OPENCLAW_BASE_IMAGE_DOCKERFILE:-$OPENCLAW_BASE_IMAGE_CONTEXT/Dockerfile}"
+OPENCLAW_BASE_VERSION="${OPENCLAW_BASE_VERSION:-}"
+OPENCLAW_BASE_IMAGE="${OPENCLAW_BASE_IMAGE:-openclaw:local}"
+OPENCLAW_BASE_IMAGE_CONTEXT="${OPENCLAW_BASE_IMAGE_CONTEXT:-}"
+OPENCLAW_BASE_IMAGE_DOCKERFILE="${OPENCLAW_BASE_IMAGE_DOCKERFILE:-}"
 OPENCLAW_DOCKER_APT_PACKAGES="${OPENCLAW_DOCKER_APT_PACKAGES:-}"
 
 for bin in docker git; do
@@ -13,6 +13,15 @@ for bin in docker git; do
     exit 2
   fi
 done
+
+if [ -z "$OPENCLAW_BASE_IMAGE_CONTEXT" ]; then
+  echo "set OPENCLAW_BASE_IMAGE_CONTEXT to a local OpenClaw checkout before running this helper" >&2
+  exit 2
+fi
+
+if [ -z "$OPENCLAW_BASE_IMAGE_DOCKERFILE" ]; then
+  OPENCLAW_BASE_IMAGE_DOCKERFILE="$OPENCLAW_BASE_IMAGE_CONTEXT/Dockerfile"
+fi
 
 if [ ! -d "$OPENCLAW_BASE_IMAGE_CONTEXT" ]; then
   echo "missing build context: $OPENCLAW_BASE_IMAGE_CONTEXT" >&2
@@ -24,20 +33,19 @@ if [ ! -f "$OPENCLAW_BASE_IMAGE_DOCKERFILE" ]; then
   exit 2
 fi
 
-if [ ! -d "$OPENCLAW_BASE_IMAGE_CONTEXT/.git" ]; then
-  echo "missing .git in context, expected checkout at tag $OPENCLAW_BASE_VERSION: $OPENCLAW_BASE_IMAGE_CONTEXT" >&2
-  exit 3
-fi
-
-current_tag="$(git -C "$OPENCLAW_BASE_IMAGE_CONTEXT" describe --tags --exact-match HEAD 2>/dev/null || true)"
-if [ "$current_tag" != "$OPENCLAW_BASE_VERSION" ]; then
-  echo "version mismatch: expected $OPENCLAW_BASE_VERSION but context HEAD is '${current_tag:-<no tag>}'" >&2
-  exit 3
+if [ -n "$OPENCLAW_BASE_VERSION" ] && [ -d "$OPENCLAW_BASE_IMAGE_CONTEXT/.git" ]; then
+  current_tag="$(git -C "$OPENCLAW_BASE_IMAGE_CONTEXT" describe --tags --exact-match HEAD 2>/dev/null || true)"
+  if [ "$current_tag" != "$OPENCLAW_BASE_VERSION" ]; then
+    echo "version mismatch: expected $OPENCLAW_BASE_VERSION but context HEAD is '${current_tag:-<no tag>}'" >&2
+    exit 3
+  fi
 fi
 
 echo "[prepare-base] context: $OPENCLAW_BASE_IMAGE_CONTEXT"
 echo "[prepare-base] dockerfile: $OPENCLAW_BASE_IMAGE_DOCKERFILE"
-echo "[prepare-base] version: $OPENCLAW_BASE_VERSION"
+if [ -n "$OPENCLAW_BASE_VERSION" ]; then
+  echo "[prepare-base] version: $OPENCLAW_BASE_VERSION"
+fi
 echo "[prepare-base] target image: $OPENCLAW_BASE_IMAGE"
 
 if ! docker build \

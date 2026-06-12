@@ -1,11 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OPENCLAW_REPO_DIR="${OPENCLAW_REPO_DIR:-/app}"
-OBSIDIAN_VAULT_DIR="${OBSIDIAN_VAULT_DIR:-/workspace/vault}"
-OPENCLAW_EXTERNAL_MD_DIR="${OPENCLAW_EXTERNAL_MD_DIR:-$OBSIDIAN_VAULT_DIR/openclaw}"
-STATE_DIR="${STATE_DIR:-$OBSIDIAN_VAULT_DIR/ObsToolsVault/state}"
-MANIFEST_FILE="${MANIFEST_FILE:-$STATE_DIR/openclaw_md_manifest.json}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/runtime-common.sh"
 
 if command -v fd >/dev/null 2>&1; then
   FD_BIN="$(command -v fd)"
